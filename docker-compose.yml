@@ -9,8 +9,10 @@ services:
     command: gunicorn --bind 0.0.0.0:5000 --workers 6 "app.app:create_app()"
     volumes:
       - ./:/var/www
-    expose:
-      - 5000
+#    expose:
+#      - 5000
+    ports:
+      - 5000:5000
     networks:
       my-network:
         aliases:

@@ -7,12 +7,15 @@ from flask import Flask, request, jsonify, abort, make_response
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from webargs.flaskparser import parser
+from flask_restful_swagger_2 import Api
+from flask_apispec.extension import FlaskApiSpec
+from flask import g
+import uuid
 
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     CORS(app)
-
 
     app.config.update({
         'APISPEC_SPEC': APISpec(
@@ -25,9 +28,39 @@ def create_app():
     })
 
     """ config db """
-    # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///file.db'
-    # app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    # db = SQLAlchemy(app)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///file.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db = SQLAlchemy(app)
+
+    @app.before_first_request
+    def first_request():
+        try:
+            db.create_all()
+        except Exception as e:
+            print(str(e))
+
+    @app.after_request
+    def after_request(response):
+        try:
+            db.session.remove()
+            return response
+        except Exception as e:
+            print(str(e))
+
+    @app.teardown_request
+    def shutdown_session(exception=None):
+        db.session.remove()
+
+    """Configure RESTful views routing"""
+    api = Api(app)
+
+    docs = FlaskApiSpec(app)
+
+    from app.file_task.views.file_views import FileView
+
+    api.add_resource(FileView, '/file')
+
+    docs.register(FileView)
 
     """Configure base routes."""
 
@@ -178,6 +211,11 @@ def create_app():
         response = make_response(jsonify(out), 504)
         return response
 
+    @app.before_request
+    def before_request(*args, **kwargs):
+        print('before request', g.__dict__)
+        g.event_hash = str(uuid.uuid4())
+        print('current request', g.__dict__)
 
 
     # """Configure app environment parameters."""

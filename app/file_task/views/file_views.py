@@ -23,14 +23,30 @@ class FileView(MethodResource):
     def get(self, **kwargs):
         # file_id = kwargs.get('file_id')
         try:
-            last_item = FileModel.query.filter_by(current_cursor=True).first()
-            if not last_item:
-                download = FileModel.query.first()
-            else:
-                current_item = last_item.id + 1
-                download = FileModel.query.get(current_item)
-                download.current_cursor = True
+            # files = FileModel.query.all()
             # zipf = zipfile.ZipFile('file.zip', 'w')
+
+            # Get current file
+            last_item = FileModel.query.filter_by(current_cursor=True).first()
+            # Handle first request
+            if last_item:
+                # last_item exist means the next file is needed
+                current_item_id = last_item.id + 1
+                download = FileModel.query.get(current_item_id)
+            else:
+                # last_item doesn't exist, which means the first file is needed
+                download = FileModel.query.first()
+            # handle download file not exist, can be no file at all or no next file
+            if not download and not last_item:
+                return {}, 200
+            # last item curso = False
+            if last_item:
+                last_item.current_cursor = False
+                FileModel.save(last_item)
+            # mark current cursor
+            download.current_cursor = True
+            FileModel.save(download)
+
             return send_file(BytesIO(download.data), attachment_filename=download.filename, as_attachment=True)
         except Exception as e:
             print(e)

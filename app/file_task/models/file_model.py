@@ -1,13 +1,10 @@
 import datetime
 # from app.config.base.sqlite import SqliteBase
-from app.config.base.sqlite import db
+from flask import current_app
+from flask_sqlalchemy import SQLAlchemy
 
-# from flask_sqlalchemy import SQLAlchemy
-# from app.app import app
 
-# db = SQLAlchemy(app)
-
-# db = SqliteBase.db
+db = SQLAlchemy()
 
 
 class FileModel(db.Model):
