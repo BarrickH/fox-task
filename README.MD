@@ -6,7 +6,7 @@ CSV task can either run/debug file run_csv_task.py or input $ flask run and visi
 
 ### FILE TASK ###
 
-File task can either run command $ gunicorn --bind 0.0.0.0:5000 --workers 6 "app.app:create_app()" or dock compose up
+File task can either run command $ gunicorn --bind 0.0.0.0:5000 --workers 6 "app.app:create_app()" or docker compose up
 
 As the task should not be hosted on any cloud server, I was trying to use gunicorn to solve the multiple request 
 requirement.
