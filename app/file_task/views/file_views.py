@@ -32,17 +32,17 @@ class FileView(MethodResource):
             if last_item:
                 # last_item exist means the next file is needed
                 current_item_id = last_item.id + 1
-                download = FileModel.query.get(current_item_id)
+                current_file = FileModel.query.get(current_item_id)
+                download = current_file if current_file else last_item
+                # overwrite last item cursor = False
+                last_item.current_cursor = False
+                FileModel.save(last_item)
             else:
                 # last_item doesn't exist, which means the first file is needed
                 download = FileModel.query.first()
-            # handle download file not exist, can be no file at all or no next file
+            # handle empty table scenario
             if not download and not last_item:
                 return {}, 200
-            # last item curso = False
-            if last_item:
-                last_item.current_cursor = False
-                FileModel.save(last_item)
             # mark current cursor
             download.current_cursor = True
             FileModel.save(download)
